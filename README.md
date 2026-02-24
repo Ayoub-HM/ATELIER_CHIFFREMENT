@@ -1,83 +1,37 @@
-# Atelier - Chiffrement/Dechiffrement (Python)
-
-## 1) Lancer le projet
-- Fork / clone du repo
-- Ouvrir dans GitHub Codespaces (ou en local)
-
-## 2) Installer les dependances
-```bash
+Atelier – Chiffrement/Déchiffrement (Python cryptography) dans GitHub Codespaces
+1) Lancer le projet dans Codespaces
+Fork / clone ce repo
+Bouton Code → Create codespace on main
+2) Installer la bibliothèque Python Cryptographie
 pip install -r requirements.txt
-```
-
-## 3) Partie A - Chiffrer/Dechiffrer un texte (Fernet)
-```bash
+3) Partie A – Chiffrer/Déchiffrer un texte
 python app/fernet_demo.py
-```
+Quel est le rôle de la clé Fernet ?
+La clé Fernet est une clé symétrique secrète de 256 bits encodée en Base64, utilisée pour chiffrer et authentifier les données avec AES et HMAC issue de la bibliothèque python cryptography. Un token Fernet (c'est à dire le résultat chiffré) contient :
 
-Role de la cle Fernet:
-- Cle symetrique secrete (32 octets, encodee base64-urlsafe).
-- Sert a chiffrer et authentifier les donnees.
-- Si la cle est mauvaise ou le message est modifie, la decryption echoue.
+| Version | Timestamp | IV | Ciphertext | HMAC |
+Version (1 octet) : Valeur actuelle : 0x80
+Timestamp (8 octets) : Permet l'expiration des tokens
+IV (16 octets) : Généré aléatoirement - Garantit que deux messages identiques produisent des ciphertexts différents
+Ciphertext (variable) : Résultat du chiffrement AES-128-CBC qui contient les données
+HMAC (32 octets) : Protège contre toute modification
+4) Partie B – Chiffrer/Déchiffrer un fichier
+Créer un fichier de test :
 
-## 4) Partie B - Chiffrer/Dechiffrer un fichier (Fernet)
-Creer un fichier de test:
-```bash
 echo "Message Top secret !" > secret.txt
-```
+Chiffrer :
 
-Chiffrer:
-```bash
 python app/file_crypto.py encrypt secret.txt secret.enc
-```
+Déchiffrer :
 
-Dechiffrer:
-```bash
 python app/file_crypto.py decrypt secret.enc secret.dec.txt
 cat secret.dec.txt
-```
+Que se passe-t-il si on modifie un octet du fichier chiffré ?
 
-Reponses:
-- Si on modifie un octet du fichier chiffre, la verification d'integrite echoue et la decryption leve `InvalidToken`.
-- Il ne faut jamais commiter la cle dans Git: toute personne avec acces au repo (ou a son historique) peut dechiffrer les donnees.
+Pourquoi ne faut-il pas commiter la clé dans Git ?
 
-## 5) Atelier 1 - Cle Fernet dans un secret GitHub
-Un nouveau programme est fourni: `app/fernet_atelier1.py`.
+5) Atelier 1 :
+Dans cet atelier, la clé Fernet n'est plus générée dans le code mais stockée dans un Repository Secret Github. Ecrivez un nouveau programme python app/fernet_atelier1.py qui utilisera une clé Fernet caché dans un Secret GitHub pour encoder et décoder vos fichiers.
 
-Principes:
-- La cle n'est pas hardcodee.
-- La cle est lue dans une variable d'environnement (ex: `FERNET_KEY`) alimentee par un secret GitHub.
-
-Generer une cle:
-```bash
-python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
-```
-
-Exemple d'utilisation:
-```bash
-python app/fernet_atelier1.py encrypt secret.txt secret.a1.enc
-python app/fernet_atelier1.py decrypt secret.a1.enc secret.a1.dec.txt
-```
-
-Option utile:
-```bash
-python app/fernet_atelier1.py encrypt secret.txt secret.a1.enc --secret-name FERNET_KEY
-```
-
-## 6) Atelier 2 - Solution PyNaCl SecretBox
-Une implementation complete est fournie: `app/secretbox_crypto.py`.
-
-Generer une cle SecretBox (base64):
-```bash
-python app/secretbox_crypto.py genkey
-```
-
-Placer la cle dans `SECRETBOX_KEY_B64`, puis:
-```bash
-python app/secretbox_crypto.py encrypt secret.txt secret.sb
-python app/secretbox_crypto.py decrypt secret.sb secret.sb.dec.txt
-cat secret.sb.dec.txt
-```
-
-Comportement securite:
-- SecretBox chiffre + authentifie.
-- Si le fichier est modifie ou si la cle est mauvaise, la decryption echoue.
+6) Atelier 2 :
+Les bibliothèques qui proposent un système complet, sûr par défaut et simple d’usage comme Fernet de la bibliothèse Cryptographie sont relativement rares. Toutefois, la bibliothèque PyNaCl via l'outil SecretBox est une très bonne alternative. travail demandé : Construire une solution de chiffrement/déchiffrement basé sur l'outils SecretBox de la bibliothèque PyNaCl.
